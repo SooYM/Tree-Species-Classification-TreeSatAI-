@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PureForest Model Verification Sandbox</title>
+    <!-- Google Fonts Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <svg class="tree-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 19V5M12 5L7 10M12 5L17 10M19 14l-7-7-7 7M21 19H3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="brand">
+                    <h1>PureForest</h1>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
+                        <span class="subtitle">Model Verification Sandbox</span>
+                        <span id="active-model-badge" class="badge" style="background-color: rgba(16, 185, 129, 0.15); color: var(--primary); border: 1px solid rgba(16, 185, 129, 0.3); text-transform: none; font-size: 0.7rem; font-weight: 500; display: none;">Model: Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="overview">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+                    Overview & Stats
+                </button>
+                <button class="tab-btn" data-tab="sandbox" id="tab-sandbox-btn">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    Accuracy Verifier
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <!-- OVERVIEW TAB -->
+        <section id="overview" class="tab-content active">
+            <div class="hero-section">
+                <h2>Large-Scale Tree Species Classification</h2>
+                <p>PureForest is a benchmark dataset covering 339 km² of monospecific forests across 40 French departments. Explore the dataset specifications below, then navigate to the Accuracy Verifier to evaluate classification models on test samples.</p>
+            </div>
+
+            <!-- Model Performance Summary Card (Main Page Metrics) -->
+            <div class="panel-glass model-dashboard" style="margin-bottom: 2rem; border-color: rgba(16, 185, 129, 0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h3 style="font-family: var(--font-display); margin-bottom: 0.25rem; font-size: 1.35rem; color: #fff;">Model Performance Dashboard</h3>
+                        <p class="panel-description" style="margin-bottom: 0;">Evaluation statistics on the PureForest testing set.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span id="overview-model-name" class="badge" style="background: rgba(255,255,255,0.05); color: #fff; font-size: 0.75rem; text-transform: none;">Loading model...</span>
+                        <button id="overview-evaluate-btn" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: var(--primary); border: none; color: #000; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all var(--transition-speed); outline: none;">
+                            Run Test Evaluation
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Metrics Row -->
+                <div class="big-metric-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; background: rgba(0,0,0,0.25); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.25rem;">
+                    <div class="big-metric" style="text-align: center;">
+                        <span class="metric-value" id="overview-accuracy" style="font-size: 2.25rem; font-weight: 700; color: var(--primary); font-family: var(--font-display); display: block;">--</span>
+                        <span class="metric-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 0.35rem;">Overall Accuracy</span>
+                    </div>
+                    <div class="big-metric" style="text-align: center; border-left: 1px solid var(--border-color);">
+                        <span class="metric-value" id="overview-f1" style="font-size: 2.25rem; font-weight: 700; color: #38bdf8; font-family: var(--font-display); display: block;">--</span>
+                        <span class="metric-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 0.35rem;">Macro F1-Score</span>
+                    </div>
+                    <div class="big-metric" style="text-align: center; border-left: 1px solid var(--border-color);">
+                        <span class="metric-value" id="overview-precision" style="font-size: 2.25rem; font-weight: 700; color: #a78bfa; font-family: var(--font-display); display: block;">--</span>
+                        <span class="metric-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 0.35rem;">Macro Precision</span>
+                    </div>
+                    <div class="big-metric" style="text-align: center; border-left: 1px solid var(--border-color);">
+                        <span class="metric-value" id="overview-recall" style="font-size: 2.25rem; font-weight: 700; color: #fb7185; font-family: var(--font-display); display: block;">--</span>
+                        <span class="metric-label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 0.35rem;">Macro Recall</span>
+                    </div>
+                </div>
+
+                <!-- Async Progress Section for Overview -->
+                <div id="overview-progress-container" class="progress-container" style="display:none; margin-top: 1rem; margin-bottom: 0.5rem;">
+                    <div class="progress-header">
+                        <span id="overview-progress-label">Processing...</span>
+                        <span id="overview-progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="overview-progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper forest">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/></svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3>339 <span class="unit">km²</span></h3>
+                        <p>Total Forest Area</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper department">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3>40</h3>
+                        <p>French Departments</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper patches">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z"/></svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3>135,569</h3>
+                        <p>Total Patches (50x50m)</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper species">
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3>18 / 13</h3>
+                        <p>Species / Semantic Classes</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Splits and Tables -->
+            <div class="content-row">
+                <div class="panel-glass split-distribution-panel">
+                    <h3>Dataset Splits & Territorial Partitioning</h3>
+                    <p class="panel-description">To avoid spatial autocorrelation, splits are grouped at the forest polygon level. Subsampling was applied to Train and Val to balance class counts and reduce redundancy.</p>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Split</th>
+                                    <th>Usable Area (km²)</th>
+                                    <th>Patches Count (N)</th>
+                                    <th>Percentage (%)</th>
+                                    <th>Unique Forests</th>
+                                </tr>
+                            </thead>
+                            <tbody id="splits-table-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-row">
+                <div class="panel-glass classes-panel">
+                    <h3>13 Target Semantic Classes</h3>
+                    <p class="panel-description">Detailed distribution of patches across training, validation, and testing sets, along with constituent tree species names.</p>
+                    <div class="table-container">
+                        <table class="data-table classes-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Semantic Class</th>
+                                    <th>Constituent Species</th>
+                                    <th>Train Split</th>
+                                    <th>Val Split</th>
+                                    <th>Test Split</th>
+                                    <th>Total Patches</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classes-table-body">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACCURACY VERIFIER TAB -->
+        <section id="sandbox" class="tab-content">
+            <div class="sandbox-layout">
+                <!-- Left Sidebar: Uploader & Control Panel -->
+                <div class="sandbox-sidebar">
+                    <div class="panel-glass upload-panel">
+                        <h3>Feed Test Dataset</h3>
+                        <p class="panel-description">Drag and drop TIFF files from the test set of any species folder (e.g. <code>imagery-Abies_alba/test/...</code>) to evaluate the classifier.</p>
+                        
+                        <div id="dropzone" class="dropzone">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                            </svg>
+                            <p class="upload-text">Drag TIFF files here or <span>browse files</span></p>
+                            <input type="file" id="file-input" multiple accept=".tiff,.tif" style="display:none">
+                        </div>
+
+                        <!-- Progress Section -->
+                        <div id="progress-container" class="progress-container" style="display:none">
+                            <div class="progress-header">
+                                <span id="progress-label">Processing...</span>
+                                <span id="progress-percentage">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Control Center -->
+                        <div class="control-center">
+                            <button id="clear-btn" class="btn-secondary" disabled>Reset Sandbox</button>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Dataset Evaluation Panel -->
+                    <div class="panel-glass bulk-test-panel">
+                        <h3>Bulk Evaluation</h3>
+                        <p class="panel-description">Analyze dataset patches directly from the local disk.</p>
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="bulk-test-split" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Dataset Split:</label>
+                            <select id="bulk-test-split" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; padding: 0.5rem 0.75rem; font-size: 0.85rem; font-family: var(--font-sans); outline: none;">
+                                <option value="test" selected>Test Split (Standard Verification)</option>
+                                <option value="train">Train Split (Overfit Testing)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label for="bulk-test-limit" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Sample Size:</label>
+                            <select id="bulk-test-limit" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; padding: 0.5rem 0.75rem; font-size: 0.85rem; font-family: var(--font-sans); outline: none;">
+                                <option value="100">100 random patches</option>
+                                <option value="500">500 random patches</option>
+                                <option value="1000" selected>1,000 random patches</option>
+                                <option value="5000">5,000 random patches</option>
+                                <option value="0">All patches in split</option>
+                            </select>
+                        </div>
+                        
+                        <button id="run-bulk-test-btn" class="btn-primary" style="width: 100%; background: var(--primary); border: none; color: #000; padding: 0.65rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all var(--transition-speed); outline: none;">
+                            Run Bulk Evaluation
+                        </button>
+
+                        <!-- Progress Section for Bulk Evaluation -->
+                        <div id="bulk-progress-container" class="progress-container" style="display:none; margin-top: 1.25rem;">
+                            <div class="progress-header">
+                                <span id="bulk-progress-label">Processing...</span>
+                                <span id="bulk-progress-percentage">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div id="bulk-progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accuracy Indicators -->
+                    <div class="panel-glass summary-panel">
+                        <h3>Session Metrics</h3>
+                        <div class="big-metric-container">
+                            <div class="big-metric">
+                                <span class="metric-value" id="session-accuracy">--</span>
+                                <span class="metric-label">Overall Accuracy</span>
+                            </div>
+                            <div class="metric-sub-row">
+                                <div class="sub-metric">
+                                    <span class="sub-value" id="session-total">0</span>
+                                    <span class="sub-label">Files Tested</span>
+                                </div>
+                                <div class="sub-metric">
+                                    <span class="sub-value" id="session-correct">0</span>
+                                    <span class="sub-label">Correct</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Metrics, Matrix, and Gallery -->
+                <div class="sandbox-content">
+                    <!-- Metrics Dashboard Section -->
+                    <div class="panel-glass dashboard-tabs-panel" style="display:none" id="results-panel">
+                        <div class="results-header">
+                            <h3>Classification Analytics</h3>
+                            <!-- Image Visualization Toggle -->
+                            <div class="image-toggle-container">
+                                <span class="toggle-label">Image View:</span>
+                                <div class="toggle-switch">
+                                    <button class="toggle-btn active" id="btn-true-color">True Color</button>
+                                    <button class="toggle-btn" id="btn-false-color">False Color (CIR)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analytical Sub-tabs -->
+                        <div class="subnav-tabs">
+                            <button class="subnav-btn active" data-subtab="gallery-tab">Image Gallery</button>
+                            <button class="subnav-btn" data-subtab="matrix-tab">Confusion Matrix</button>
+                            <button class="subnav-btn" data-subtab="perclass-tab">Per-Class Metrics</button>
+                            <button class="subnav-btn" data-subtab="misclassified-tab">Misclassified List</button>
+                        </div>
+
+                        <!-- SUBTAB 1: IMAGE GALLERY -->
+                        <div id="gallery-tab" class="subtab-content active">
+                            <div class="gallery-toolbar">
+                                <div class="search-box">
+                                    <input type="text" id="gallery-search" placeholder="Search by species or class...">
+                                </div>
+                                <div class="filter-pills">
+                                    <button class="pill active" data-filter="all">All (<span id="pill-all-count">0</span>)</button>
+                                    <button class="pill" data-filter="correct">Correct (<span id="pill-correct-count">0</span>)</button>
+                                    <button class="pill" data-filter="incorrect">Incorrect (<span id="pill-incorrect-count">0</span>)</button>
+                                </div>
+                            </div>
+                            
+                            <div class="image-gallery" id="image-gallery">
+                                <!-- Cards generated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- SUBTAB 2: CONFUSION MATRIX -->
+                        <div id="matrix-tab" class="subtab-content">
+                            <p class="subtab-description">The confusion matrix columns represent predictions while rows represent ground truth labels. Deep colors indicate high counts. Hover over cells to see details.</p>
+                            <div class="matrix-wrapper">
+                                <div class="matrix-grid-container" id="matrix-container">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SUBTAB 3: PER-CLASS METRICS -->
+                        <div id="perclass-tab" class="subtab-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Class Name</th>
+                                            <th>Support</th>
+                                            <th>True Positives (TP)</th>
+                                            <th>True Negatives (TN)</th>
+                                            <th>False Positives (FP)</th>
+                                            <th>False Negatives (FN)</th>
+                                            <th>Precision (%)</th>
+                                            <th>Recall (%)</th>
+                                            <th>F1-Score (%)</th>
+                                            <th>IoU (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="perclass-table-body">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SUBTAB 4: MISCLASSIFIED LIST -->
+                        <div id="misclassified-tab" class="subtab-content">
+                            <p class="subtab-description">Below is the complete list of all misclassified forest patches. Click any row to load and display its side-by-side True Color and False Color images in the Lightbox viewer.</p>
+                            <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Filename</th>
+                                            <th>Actual Species (Ground Truth)</th>
+                                            <th>Misclassified Species (Prediction)</th>
+                                            <th style="text-align: center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="misclassified-table-body">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Welcome Screen -->
+                    <div class="panel-glass welcome-panel" id="welcome-panel">
+                        <div class="welcome-graphics">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10"/>
+                            </svg>
+                        </div>
+                        <h3>Ready for Testing</h3>
+                        <p>Feed one or more 4-channel TIFF images from the test split to run the Random Forest classifier. The system will compile prediction performance statistics dynamically.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p>PureForest Classification Sandbox &bull; Created for Intern Project</p>
+            <p class="copyright">&copy; 2026</p>
+        </div>
+    </footer>
+
+    <!-- Interactive Lightbox Modal -->
+    <div id="lightbox" class="lightbox" style="display:none">
+        <div class="lightbox-content">
+            <span class="lightbox-close">&times;</span>
+            <div class="lightbox-body">
+                <div class="lightbox-images">
+                    <div class="lightbox-image-box">
+                        <h4>True Color (RGB)</h4>
+                        <img id="lightbox-img-true" src="" alt="True Color">
+                    </div>
+                    <div class="lightbox-image-box">
+                        <h4>False Color (CIR)</h4>
+                        <img id="lightbox-img-false" src="" alt="False Color">
+                    </div>
+                </div>
+                <div class="lightbox-details">
+                    <h3 id="lightbox-filename">file.tiff</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="label">Constituent Species</span>
+                            <span class="value" id="lightbox-species">Unknown</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">True Class Label</span>
+                            <span class="value" id="lightbox-true">Class 0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Predicted Label</span>
+                            <span class="value" id="lightbox-pred">Class 0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Status</span>
+                            <span class="value badge" id="lightbox-status">Correct</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
